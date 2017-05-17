@@ -1,145 +1,133 @@
-%define distsuffix edm
+# FIXME: unbundle QtSystemInfo used by src/version/version.cpp
 
-%global _enable_debug_package 0
-%global debug_package %{nil}
-%global __os_install_post /usr/lib/rpm/brp-compress %{nil}
+%define oname Fritzing
+%define lname %(echo %oname | tr [:upper:] [:lower:])
 
-%define tarname fritzing.2010.10.01.source
+Summary:	An Electronic Design Automation software with a low entry barrier
+Name:		%{lname}
+Version:	0.9.3b
+Release:	1
+Group:		Sciences/Other
+# LGPLv2+   src/lbb/QtSystemInfo
+# CC-BY-SA  docs 
+# LGPLv2+   others
+License:	GPLv3+ and CC-BY-SA and LGPLv2+
+URL:		https://github.com/%{name}/
+Source0:	https://github.com/%{name}/fritzing-app/archive/%{version}/%{name}-%{version}.tar.gz
+Patch0:	%{name}-0.9.3b-disable_auto_update.patch
+Patch1:	%{name}-0.9.3b-use_system_font.patch
+Patch2:	%{name}-0.9.3b-use_system_libgit2.patch
+Patch3:	%{name}-0.9.3b-use_system_libboost.patch
 
-Name: fritzing
-Version: 0.4.3b
-Release: %mkrel 1
-Summary: CAD for Arduino
-Summary(ru): САПР для Arduino
-License: GPLv2/GPLv3
-Group: Sciences/Other
-Url: http://fritzing.org/
-Source: http://fritzing.org/download/%{version}/source-tarball/%{tarname}.tar.bz2
-Source1: fritzing.desktop
+BuildRequires:	desktop-file-utils
+BuildRequires:	font(droidsans)
+BuildRequires:	font(droidsansmono)
+BuildRequires:	imagemagick
+BuildRequires:	boost-devel
+BuildRequires:	pkgconfig(libgit2)
+BuildRequires:	pkgconfig(minizip)
+BuildRequires:	pkgconfig(Qt5WebKit)
+BuildRequires:	pkgconfig(Qt5SerialPort)
+BuildRequires:	qt5-devel
+BuildRequires:	quazip-devel
+BuildRequires:	twitter4j
+
+Requires:	font(droidsans)
+Requires:	font(droidsansmono)
+Requires:	twitter4j
 
 %description
-Fritzing is an open-source initiative to support designers, artists, researchers and hobbyists to work 
-creatively with interactive electronics. We are creating a software and website in the spirit of Processing  
-and Arduino, developing a tool that allows users to document their prototypes, share them with others, teach electronics 
-in a classroom, and to create a pcb layout for professional manufacturing.
+The Fritzing application is an Electronic Design Automation software with a
+low entry barrier, suited for the needs of makers and hobbyists. It offers a
+unique real-life "breadboard" view, and a parts library with many commonly
+used high-level components. Fritzing makes it very easy to communicate about
+circuits, as well as to turn them into PCB layouts ready for production. It
+is particularly popular among Arduino and Raspberry Pi users, and is widely
+used in education and creative tinkering.
 
-%description  -l ru
-Fritzing - это Open-Source проект для творческой работы с интерактивной электроникой. 
-Ориентирован на  разработчиков, исследователей, творческих людей и просто любителей.
-Мы создаём программное обеспечение в духе Processing и Arduino, разрабатываем инструментарий,
-позволяющий пользователям документировать их прототипы, делиться прототипами с другими пользователями,
-обучать электронике в классе и создавать печатные платы профессионального уровня.
+%files -f %{name}.lang
+%{_bindir}/%{oname}
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/help
+%{_datadir}/%{name}/sketches
+%dir %{_datadir}/%{name}/translations
+%{_datadir}/%{name}/translations/syntax
+%{_datadir}/applications/%{name}.desktop
+%{_iconsdir}/hicolor/*/apps/%{name}.png
+%{_datadir}/pixmaps/%{name}.xpm
+%{_mandir}/man1/%{oname}.1*
+%doc readme.md
+%doc LICENSE.GPL2
+%doc LICENSE.GPL3
+%doc LICENSE.CC-BY-SA
+
+#----------------------------------------------------------------------------
 
 %prep
-rm -rf $RPM_BUILD_ROOT
-%setup -q -n %{tarname}
+%setup -q -n %{name}-app-%{version}
+	
+# Apply all patches
+%patch0 -p1 -b .disable_autoupdate
+#patch1 -p1 -b .font
+%patch2 -p1 -b .libgit2
+%patch3 -p1 -b .libboost
+
+# Use system libs
+rm -f pri/quazip.pri
+rm -fr src/lib/quazip
+
+# use system twitter4j
+find . -name twitter4j-core-\*jar -exec ln -fs /usr/share/java/twitter4j/twitter4j-core.jar '{}' \;
+
+# Use system fonts
+#rm -rf resources/fonts/
+ln -fs %{_datadir}/fonts/TTF/droid/DroidSans.ttf resources/fonts
+ln -fs %{_datadir}/fonts/TTF/droid/DroidSansMono.ttf resources/fonts
+ln -fs %{_datadir}/fonts/TTF/droid/DroidSans-Bold.ttf resources/fonts
+# FIXME: OCR-A font has not been packaged yet
+ln -fs %{_datadir}/fonts/TTF/droid/DroidSansMono.ttf resources/fonts/OCRA.ttf
+
+# remove duplicated Category entry in .desktop
+sed -i -e '/Categories=PCB;/d' %{name}.desktop
+
+# fix .desktop
+desktop-file-edit \
+	--set-icon="%{name}" \
+	--remove-category="EDA" \
+	--remove-category="PCB" \
+	--add-category="GUIDesigner" \
+	--add-category="Engineering" \
+	--add-category="Science" \
+	--add-category="Education" \
+	--remove-key="Version" \
+	%{name}.desktop
 
 %build
-%qmake_qt4 phoenix.pro
-
-%make release
+%{qmake_qt5} \
+	DEFINES=QUAZIP_INSTALLED \
+	DEFINES=QUAZIP_INSTALLED
+%make
 
 %install
-rm -rf $RPM_BUILD_ROOT
+%makeinstall_std INSTALL_ROOT=%{buildroot}
 
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/bins
-install -D -m 755 bins/* %{buildroot}%{_datadir}/%{name}-%{version}/bins/
+# icons
+rm -fr %{buildroot}/%{_iconsdir}/%{name}.png
+for d in 16 32 48 64 72 128 256
+do
+	install -dm 0755 %{buildroot}%{_iconsdir}/hicolor/${d}x${d}/apps/
+	convert -resize "${d}x${d}" resources/images/%{name}_icon.png \
+		%{buildroot}%{_iconsdir}/hicolor/${d}x${d}/apps/%{name}.png
+done
+#   pixmap
+install -dm 0755 %{buildroot}%{_datadir}/pixmaps/
+convert -resize 32x32 resources/images/%{name}_icon.png \
+		%{buildroot}%{_datadir}/pixmaps/%{name}.xpm
 
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/docs/templates/
-install -D -m 755 docs/templates/* %{buildroot}%{_datadir}/%{name}-%{version}/docs/templates/
-
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/contrib/
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/core/
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/obsolete/
-
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/contrib/breadboard
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/contrib/icon
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/contrib/pcb
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/contrib/schematic
-
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/core/breadboard
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/core/icon
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/core/pcb
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/core/schematic
-
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/obsolete/breadboard
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/obsolete/icon
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/obsolete/pcb
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/obsolete/schematic
-
-
-# Может быть, следующие строки лучше потом заменить на линк на каталог пользователя.
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/user/breadboard
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/user/icon
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/user/pcb
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/user/schematic
-
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/parts/user/
-
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/sketches/core/
-
-install -d -m 755 %{buildroot}%{_datadir}/%{name}-%{version}/translations/syntax/
-
-install -D -m 644 parts/core/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/core/
-
-install -D -m 644 parts/obsolete/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/obsolete/
-
-install -D -m 644 parts/svg/contrib/pcb/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/contrib/pcb/
-
-install -D -m 644 parts/svg/core/breadboard/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/core/breadboard/
-install -D -m 644 parts/svg/core/icon/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/core/icon/
-install -D -m 644 parts/svg/core/pcb/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/core/pcb/
-install -D -m 644 parts/svg/core/schematic/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/core/schematic/
-
-install -D -m 644 parts/svg/obsolete/breadboard/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/obsolete/breadboard/
-install -D -m 644 parts/svg/obsolete/icon/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/obsolete/icon/
-install -D -m 644 parts/svg/obsolete/pcb/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/obsolete/pcb/
-install -D -m 644 parts/svg/obsolete/schematic/* %{buildroot}%{_datadir}/%{name}-%{version}/parts/svg/obsolete/schematic/
-
-install -D -m 644 sketches/core/* %{buildroot}%{_datadir}/%{name}-%{version}/sketches/core/
-install -D -m 644 sketches/index.xml %{buildroot}%{_datadir}/%{name}-%{version}/sketches/
-
-install -D -m 644 translations/syntax/* %{buildroot}%{_datadir}/%{name}-%{version}/translations/syntax/
-install -D -m 644 translations/*.qm %{buildroot}%{_datadir}/%{name}-%{version}/translations/
-install -D -m 644 translations/*.ts %{buildroot}%{_datadir}/%{name}-%{version}/translations/
-
-install -D -m 755 Fritzing %{buildroot}%{_datadir}/%{name}-%{version}/
-
-
-install -d -m 755 %{buildroot}%{_iconsdir}
-install -D -m 644 resources/images/fritzing_icon.png %{buildroot}%{_iconsdir}/
-
-desktop-file-install --vendor mandriva                                    \
-                     --dir $RPM_BUILD_ROOT%{_datadir}/applications      \
-                                          %{SOURCE1}
-
-%post
-if [ $1 = 1 ]; then
-    // Do stuff specific to installs
-%{__ln_s} %{_datadir}/%{name}-%{version}/Fritzing %{_bindir}/Fritzing
-fi
-#if [ $1 = 2 ]; then
-#    // Do stuff specific to upgrades
-#fi
-
-%postun
-if [ $1 = 0 ]; then
-    // Do stuff specific to uninstalls
-    rm -rf %{_bindir}/Fritzing
-fi
-#if [ $1 = 1 ]; then
-#    // Do stuff specific to upgrades
-#fi
-        
-
-%clean
-rm -rf $RPM_BUILD_ROOT
-
-%files
-%defattr(-,root,root)
-%doc README.txt LICENSE.GPL2 LICENSE.GPL3
-%{_datadir}/%{name}-%{version}
-%{_iconsdir}
-%{_datadir}/applications/
-
+# locales
+%find_lang %{lname} --with-qt
+	
+%check
+# desktop file
+desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
 

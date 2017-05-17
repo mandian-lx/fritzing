@@ -1,0 +1,25 @@
+--- fritzing-app-0.9.3b/phoenix.pro.libgit2
++++ fritzing-app-0.9.3b/phoenix.pro
+@@ -163,7 +163,7 @@
+ 
+ # Fritzing is using libgit2 since version 0.9.3
+ 
+-LIBGIT2INCLUDE = ../libgit2/include
++LIBGIT2INCLUDE = /usr/include
+ exists($$LIBGIT2INCLUDE/git2.h) {
+     message("found libgit2 include path at $$LIBGIT2INCLUDE")
+ }
+@@ -194,7 +194,12 @@
+ }
+ 
+ unix {
+-    LIBGIT2LIB = ../libgit2/build
++    LIBGIT2LIB = /usr/lib
++
++    contains(QMAKE_HOST.arch, x86_64) {
++       LIBGIT2LIB = /usr/lib64
++    }
++
+     macx {
+         exists($$LIBGIT2LIB/libgit2.dylib) {
+             message("found libgit2 library in $$LIBGIT2LIB")

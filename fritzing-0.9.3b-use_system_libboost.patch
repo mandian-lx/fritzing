@@ -1,0 +1,20 @@
+--- fritzing-app-0.9.3b/pri/utils.pri.libboost
++++ fritzing-app-0.9.3b/pri/utils.pri
+@@ -29,14 +29,14 @@
+ contains(LATESTBOOST, 0) {
+     unix {
+         !macx {
+-             BOOSTINFO = $$system(dpkg -s libboost-dev | grep 'Version')
+-             BADVERSION = $$find(BOOSTINFO, 1\.54)
++             BOOSTINFO = $$system(grep define\\ BOOST_LIB_VERSION /usr/include/boost/version.hpp| cut -d\\\" -f2 | tr _ .)
++             BADVERSION = $$find(BOOSTINFO, 1.54)
+              !isEmpty(BADVERSION) {
+                  message("Boost 1.54 has a bug in a function that Fritzing uses, so download or install some other version")
+                  error("Easiest to copy the boost library to .../src/lib/, so that you have .../src/lib/boost_1_xx_0")
+              }
+              isEmpty(BADVERSION) {
+-                 BOOSTVERSION = $$find(BOOSTINFO, 1\...\.0)
++                 BOOSTVERSION = $$find(BOOSTINFO, 1...)
+                  !isEmpty(BOOSTVERSION) {
+                      LATESTBOOST = installed
+                      message("using installed BOOST library")

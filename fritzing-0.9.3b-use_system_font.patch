@@ -1,0 +1,13 @@
+--- fritzing-app-0.9.3b/phoenixresources.qrc.font
++++ fritzing-app-0.9.3b/phoenixresources.qrc
+@@ -273,8 +273,8 @@
+         <file>resources/fonts/DroidSans.ttf</file>
+         <file>resources/fonts/DroidSansMono.ttf</file>
+         <file>resources/fonts/DroidSans-Bold.ttf</file>
+-        <file>resources/fonts/NOTICE</file>
+-        <file>resources/fonts/OCRA.ttf</file>
++        <!--file>resources/fonts/NOTICE</file-->
++        <!--file>resources/fonts/OCRA.ttf</file-->
+         <file>resources/bins/my_parts.fzb</file>
+         <file>resources/bins/search.fzb</file>
+         <file>resources/bins/temp.fzb</file>
