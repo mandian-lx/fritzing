@@ -5,7 +5,7 @@
 
 Summary:	An Electronic Design Automation software with a low entry barrier
 Name:		%{lname}
-Version:	0.9.3b
+Version:	0.9.3b	
 Release:	1
 Group:		Sciences/Other
 # LGPLv2+   src/lbb/QtSystemInfo
@@ -26,6 +26,7 @@ BuildRequires:	imagemagick
 BuildRequires:	boost-devel
 BuildRequires:	pkgconfig(libgit2)
 BuildRequires:	pkgconfig(minizip)
+BuildRequires:	pkgconfig(Qt5Svg)
 BuildRequires:	pkgconfig(Qt5WebKit)
 BuildRequires:	pkgconfig(Qt5SerialPort)
 BuildRequires:	qt5-devel
