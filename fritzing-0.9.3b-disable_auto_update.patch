@@ -59,6 +59,15 @@
      void createUserDataStoreFolderStructures();
  	void changeActivation(bool activate, QWidget * originator);
  	void updateActivation();
+@@ -152,7 +152,7 @@
+     void doCommand(const QString & command, const QString & params, QString & result, int & status);
+     void regeneratePartsDatabase();
+     void regenerateDatabaseFinished();
+-    void installNewParts();
++//    void installNewParts();
+ 
+ 
+ protected:
 --- fritzing-app-0.9.3b/src/fapplication.cpp.disable_autoupdate
 +++ fritzing-app-0.9.3b/src/fapplication.cpp
 @@ -33,7 +33,7 @@
