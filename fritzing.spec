@@ -112,9 +112,11 @@ desktop-file-edit \
 	%{name}.desktop
 
 %build
+# FIXME: QMAKE_STRIP option is used to disable strip
+#        because qmake strip binaries too early
 %{qmake_qt5} \
 	DEFINES=QUAZIP_INSTALLED \
-	DEFINES=QUAZIP_INSTALLED
+	QMAKE_STRIP=echo
 %make
 
 %install
