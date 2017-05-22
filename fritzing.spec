@@ -13,7 +13,8 @@ Group:		Sciences/Other
 # LGPLv2+   others
 License:	GPLv3+ and CC-BY-SA and LGPLv2+
 URL:		https://github.com/%{name}/
-Source0:	https://github.com/%{name}/fritzing-app/archive/%{version}/%{name}-%{version}.tar.gz
+Source0:	https://github.com/%{name}/%{name}-app/archive/%{version}/%{name}-app-%{version}.tar.gz
+Source1:	https://github.com/%{name}/%{name}-parts/archive/%{version}/%{name}-parts-%{version}.tar.gz
 Patch0:	%{name}-0.9.3b-disable_auto_update.patch
 Patch1:	%{name}-0.9.3b-use_system_font.patch
 Patch2:	%{name}-0.9.3b-use_system_libgit2.patch
@@ -42,6 +43,7 @@ BuildRequires:	qt5-devel
 BuildRequires:	quazip-devel
 BuildRequires:	twitter4j
 
+Requires:	%{name}-parts >= %{version}
 Requires:	font(droidsans)
 Requires:	font(droidsansmono)
 Requires:	twitter4j
@@ -57,7 +59,6 @@ used in education and creative tinkering.
 
 %files -f %{name}.lang
 %{_bindir}/%{oname}
-%dir %{_datadir}/%{name}
 %{_datadir}/%{name}/help
 %{_datadir}/%{name}/sketches
 %dir %{_datadir}/%{name}/translations
@@ -73,8 +74,46 @@ used in education and creative tinkering.
 
 #----------------------------------------------------------------------------
 
+%package parts
+Summary:	Common data for %{oname}
+Group:		Development/Other
+
+%description parts
+ANN is a library written in the C++ programming language to support both
+exact and approximate nearest neighbor searching in spaces of various
+dimensions. It was implemented by David M. Mount of the University of
+Maryland, and Sunil Arya of the Hong Kong University of Science and
+Technology. ANN (pronounced like the name ``Ann'') stands for
+Approximate Nearest Neighbors. ANN is also a testbed containing
+programs and procedures for generating data sets, collecting and
+analyzing statistics on the performance of nearest neighbor algorithms
+and data structures, and visualizing the geometric structure of these
+data structures.
+
+The library also comes with test programs for measuring the quality of
+performance of ANN on any particular data sets, as well as programs for
+visualizing the structure of the geometric data structures. 
+
+%files parts
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/bins
+%{_datadir}/%{name}/contrib
+%{_datadir}/%{name}/core
+%{_datadir}/%{name}/obsolete
+%{_datadir}/%{name}/svg
+%{_datadir}/%{name}/scripts
+%{_datadir}/%{name}/user
+%doc parts/README.txt
+%doc parts/CONTRIBUTING.txt
+%doc parts/LICENSE.txt
+
+#----------------------------------------------------------------------------
+
 %prep
-%setup -q -n %{name}-app-%{version}
+%setup -q -n %{name}-app-%{version} -a1
+
+# fix parts path
+mv %{name}-parts-%{version} parts
 	
 # Apply all patches
 %patch0 -p1 -b .disable_autoupdate
@@ -135,6 +174,15 @@ done
 install -dm 0755 %{buildroot}%{_datadir}/pixmaps/
 convert -resize 32x32 resources/images/%{name}_icon.png \
 		%{buildroot}%{_datadir}/pixmaps/%{name}.xpm
+
+# parts
+cp -far parts/bins %{buildroot}%{_datadir}/
+cp -far parts/contrib %{buildroot}%{_datadir}/
+cp -far parts/core %{buildroot}%{_datadir}/
+cp -far parts/obsolete %{buildroot}%{_datadir}/
+cp -far parts/svg %{buildroot}%{_datadir}/
+cp -far parts/scripts %{buildroot}%{_datadir}/
+cp -far parts/user %{buildroot}%{_datadir}/
 
 # locales
 %find_lang %{lname} --with-qt
