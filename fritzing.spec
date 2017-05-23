@@ -103,8 +103,8 @@ visualizing the structure of the geometric data structures.
 %{_datadir}/%{name}/svg
 %{_datadir}/%{name}/scripts
 %{_datadir}/%{name}/user
-%doc parts/README.txt
-%doc parts/CONTRIBUTING.txt
+%doc parts/README.md
+%doc parts/CONTRIBUTING.md
 %doc parts/LICENSE.txt
 
 #----------------------------------------------------------------------------
@@ -176,13 +176,13 @@ convert -resize 32x32 resources/images/%{name}_icon.png \
 		%{buildroot}%{_datadir}/pixmaps/%{name}.xpm
 
 # parts
-cp -far parts/bins %{buildroot}%{_datadir}/
-cp -far parts/contrib %{buildroot}%{_datadir}/
-cp -far parts/core %{buildroot}%{_datadir}/
-cp -far parts/obsolete %{buildroot}%{_datadir}/
-cp -far parts/svg %{buildroot}%{_datadir}/
-cp -far parts/scripts %{buildroot}%{_datadir}/
-cp -far parts/user %{buildroot}%{_datadir}/
+cp -far parts/bins %{buildroot}%{_datadir}/%{name}/
+cp -far parts/contrib %{buildroot}%{_datadir}/%{name}/
+cp -far parts/core %{buildroot}%{_datadir}/%{name}/
+cp -far parts/obsolete %{buildroot}%{_datadir}/%{name}/
+cp -far parts/svg %{buildroot}%{_datadir}/%{name}/
+cp -far parts/scripts %{buildroot}%{_datadir}/%{name}/
+cp -far parts/user %{buildroot}%{_datadir}/%{name}/
 
 # locales
 %find_lang %{lname} --with-qt
